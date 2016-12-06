@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Canvas Game!</title>
+</head>
+<body>
+<div id="game"></div>
+
+<script type="text/javascript">
+// Create the canvas tag with JS
+var canvas = document.createElement('canvas'); //canvas element is used to create graphics
+// create a context for JS to play with (methods, properties, etc)
+var context = canvas.getContext('2d');
+// Give the canvas some height and width
+canvas.width = 512;
+canvas.height = 480;
+
+// add the canvas tag to the DOM
+document.body.appendChild(canvas);
+
+var backgroundImage = new Image();  //new Object
+backgroundImage.src="canvas-game-assets/background.png";
+
+//can make a speedModifier to control speed - like var speedModifier = .5 (slower) - mult by the 10 in update()
+
+// make a var for our hero.  He is an image.
+var hero = new Image();
+hero.src = "canvas-game-assets/hero.png";
+var heroLocation = {
+	x: 100,
+	y: 100
+}
+
+// make a var for our bad guy.  He is an image.
+var monster = new Image();
+monster.src = "canvas-game-assets/monster.png";
+var monsterLocation = {
+	x: 200,
+	y: 100
+}
+
+// An array to hold all the keys that are currently pressed down
+var keysDown = [];
+
+addEventListener('keyup', function(event) { //on this event (keydown let go), delete the index in the array
+	delete keysDown[event.keyCode];
+});
+
+// We need a way to tell if the user has pushed an arrow key!
+addEventListener('keydown', function(event) { 
+	// if keyDown[39] is true, then the user pushed the right arrow (storing a boolean in keyDown array @ that index)
+	// if keyDown[40] is true, then the user pushed the down arrow 
+	// if keyDown[37] is true, then the user pushed the left arrow 
+	// if keyDown[38] is true, then the user pushed the up arrow 
+
+	keysDown[event.keyCode] = true;
+	// console.log(keysDown);
+//function has no name, and will only get called if parent calls it (in this case, 'keydown' - will send a parameter called event here)
+	// we know a key was pressed, or we wouldn't be in here
+	// what key did they press?
+	// console.log(event.key); used this to find the keyboardEvent in the console (used to set event.keys below) - moved to update function further down
+	// if (event.key == 'ArrowDown') {
+	// 	console.log("User pressed down arrow");
+	// 	heroLocation.y += 10; //anytime the user presses the arrow down key, update this position by 10px - same for all keys listed in the event.key statements
+	// }
+	// if (event.key == 'ArrowUp') {
+	// 	console.log("User pressed up arrow");
+	// 	heroLocation.y -=10;
+	// }
+	// if (event.key == 'ArrowLeft') {
+	// 	console.log("User pressed left arrow");
+	// 	heroLocation.x-=10;
+	// }
+	// if (event.key == 'ArrowRight') {
+	// 	console.log("User pressed right arrow");
+	// 	heroLocation.x +=10;
+	// }
+
+
+});
+
+// This is where we will update the hero based on what's true in keysDown
+function update() {
+	console.log(heroLocation);
+
+	// user pressed right at some point because it's in the array.  Move right.
+	// RIGHT ARROW
+	if (39 in keysDown) {
+		if (heroLocation.x <= 440) {
+			heroLocation.x += 10;
+		}
+	}
+	
+	// LEFT ARROW
+	if (37 in keysDown) {
+		if (heroLocation.x >= 40) {
+			heroLocation.x -= 10;
+		}
+	}
+
+	// UP ARROW
+	if (38 in keysDown) {
+		if (heroLocation.y >= 40) {
+			heroLocation.y -= 10;
+		}
+	}
+
+	// DOWN ARROW
+	if (40 in keysDown) {
+		if (heroLocation.y <= 400) {
+		heroLocation.y += 10;
+		}
+	}
+	// collision detection below
+	if (
+		(heroLocation.x <= monsterLocation.x + 32)
+		&& (heroLocation.y <= monsterLocation.y + 32)
+		&& (monsterLocation.x <= heroLocation.x + 32)
+		&& (monsterLocation.y <= heroLocation.y + 32)
+		) {
+		// console.log("Hero is within 32 of the monster.")
+		var random = Math.random() * 200;
+		var random2 = Math.random() * 200;
+		monsterLocation.x = random;
+		monsterLocation.y = random2;
+	}
+}
+
+
+// KEEP THIS AT THE BOTTOM - we need something to always keep running - our main game loop
+function draw() {
+	update();
+	// Put our background image on the context, at x = 0, y = 0;
+	context.drawImage(backgroundImage,0,0); //takes 3 parameters - what image do you want to draw, where do you want to draw it (x,y coordinates)
+	context.drawImage(hero,heroLocation.x,heroLocation.y); //puts hero on screen and sets movement parameters
+	context.drawImage(monster,monsterLocation.x,monsterLocation.y); //puts monster on screen and sets movement parameters - drawn from top left corner
+	requestAnimationFrame(draw) //pass it the function we want to call (this is a recursive function) - draws an image on the background - every time JS is ready to re-draw, the function (draw) is called again
+
+}
+draw();
+</script>
+
+</body>
+</html>
