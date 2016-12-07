@@ -39,6 +39,8 @@ var monsterLocation = {
 	y: 100
 }
 
+var goblinDirectionChangeCounter = 0;
+var goblinDirection = 1;//global var - this is to indicate which directions the goblin can move (at present: moveGoblin();)
 // An array to hold all the keys that are currently pressed down
 var keysDown = [];
 
@@ -84,6 +86,7 @@ function update() {
 	console.log(heroLocation);
 
 	// user pressed right at some point because it's in the array.  Move right.
+	// Below is how far up/down/left/right the hero can go
 	// RIGHT ARROW
 	if (39 in keysDown) {
 		if (heroLocation.x <= 440) {
@@ -111,6 +114,15 @@ function update() {
 		heroLocation.y += 10;
 		}
 	}
+
+	// SPACEBAR
+	//want to use this to eventually execute goblin - rotate image on-press so that he remains frozen? Create button to toggle the goblin movement so that the cycle of chasing and pressing spacebar to kill can be executed again
+	if (32 in keysDown && goblinDirection === 0) {
+		var random = Math.random() * (canvas.width - 64);
+		var random2 = Math.random() * (canvas.height - 64);
+		monsterLocation.x = random;
+		monsterLocation.y = random2;
+	}
 	// collision detection below
 	if (
 		(heroLocation.x <= monsterLocation.x + 32)
@@ -119,13 +131,77 @@ function update() {
 		&& (monsterLocation.y <= heroLocation.y + 32)
 		) {
 		// console.log("Hero is within 32 of the monster.")
-		var random = Math.random() * 200;
-		var random2 = Math.random() * 200;
-		monsterLocation.x = random;
-		monsterLocation.y = random2;
+		// Puts goblin in a random spot when within 32 of the hero when collision is detected
+		// var random = Math.random() * canvas.width;
+		// var random2 = Math.random() * canvas.height;
+		// monsterLocation.x = random;
+		// monsterLocation.y = random2;
+		goblinDirection = 0; //commented out var random/random2 above to prevent goblin from teleporting when reaching hero; want to stun goblin for 50 cycles to allow hero to attack
+		// goblinBorderDetection();
+	}
+	moveGoblin();
+	changeDirection();
+	goblinBorderDetection(); //placed this after moveGoblin() so that he doesn't go out of bounds
+}
+
+// checks to see if the goblin is outside of bounds - check to see if x< 0 for goblin, if y<0 for goblin, if x>maxWidth, if y>maxWidth - if any are true, then push goblin back in bounds
+function goblinBorderDetection() {
+	if (monsterLocation.x < 32) {
+		monsterLocation.x = 32;
+	}
+	if (monsterLocation.y < 32) {
+		monsterLocation.y = 32;
+	}
+	if (monsterLocation.x > (canvas.width - 64)) {
+		(monsterLocation.x = (canvas.width - 64));
+	}
+	if (monsterLocation.y > (canvas.height - 64)) {
+		(monsterLocation.y = (canvas.height - 64));
+	} 
+}
+
+// Moves the goblin around the page at random
+function moveGoblin() {
+	// monster will move orthogonally
+	switch(goblinDirection) {
+		case 1: //move goblin up
+			monsterLocation.y -= 1;
+			break;
+		case 2: //move goblin up and to the right
+			monsterLocation.y -= 1;
+			monsterLocation.x += 1;
+			break;
+		case 3: //move goblin to the right
+			monsterLocation.x += 1;
+			break;
+		case 4: //move goblin down and to the right
+			monsterLocation.y += 1;
+			monsterLocation.x += 1;
+			break;
+		case 5: //move goblin down
+			monsterLocation.y +=1;
+			break;
+		case 6: //move goblin down and to the left
+			monsterLocation.y += 1;
+			monsterLocation.x -= 1;
+			break;
+		case 7: //move goblin left
+			monsterLocation.x -= 1;
+			break;
+		case 8: //move goblin up and to the left
+			monsterLocation.y -= 1;
+			monsterLocation.x -= 1;
 	}
 }
 
+function changeDirection() {
+// every 50 cycles, the goblin changes direction randomly (creates smoother movement)
+	goblinDirectionChangeCounter += 1;
+	if (goblinDirectionChangeCounter == 50) {
+		goblinDirectionChangeCounter = 0;
+		goblinDirection = Math.floor(Math.random() * 8) + 1;
+	}
+}
 
 // KEEP THIS AT THE BOTTOM - we need something to always keep running - our main game loop
 function draw() {
