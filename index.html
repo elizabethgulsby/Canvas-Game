@@ -3,12 +3,126 @@
 <head>
 	<title>Canvas Game!</title>
 </head>
+<style type="text/css">
+
+	html {
+		background-color: #000000; 
+	}
+	#keep-score {
+		font-size: 50px;
+		position: relative;
+		text-align: center;
+		color:  white;
+	}
+
+	body {
+		text-align: center; 
+	}
+
+	#timer {
+		text-align: center;
+		position: relative;
+    	padding-bottom: 15px;
+    	color:  white;
+	}
+
+	#game-controls {
+		text-align: center;
+		padding-bottom: 20px;
+	}
+
+	#start-game-message {
+		position: relative;
+		top: 10px;
+		color: white;
+	}
+
+
+
+</style>
+
+
 <body>
-<div id="game"></div>
+<canvas id="game"></canvas>
+
+<div id="keep-score">Score:</div>
+<div id="timer">Time: 30 seconds</div>
+<div id="game-controls">
+	<button onclick = 'startGame();'>Start Game</button>
+	<button onclick = 'stopGame();''>Stop Game</button>
+	<button onclick = 'newPlayer();'>New Player</button>
+	<input id="player-name" type="text" placeholder="Player Name">
+	<div id="start-game-message">Hello! Please enter your name and click 'New Player' to begin.</div>
+</div>
 
 <script type="text/javascript">
+
+function newPlayer() {
+	var playerNameDiv = document.getElementById('player-name');
+	var playerName = playerNameDiv.value;
+	document.getElementById('start-game-message').innerHTML = "Hello, " + playerName + "!  Try to catch the goblin! Click 'Start Game'."
+}
+var gamePaused = false;
+var timeDifference;
+var newNow = 0;
+// 2. Add a countdown timer
+	// start game button. 
+	function startGame() {
+	if (gamePaused == true) {
+		gamePaused = false;
+		timerInterval = setInterval(updateTimer, 1000);
+	}
+	else {
+		gameOn = true;  // when click on Start Game, game starts (timer starts, player can move) - update() set to run if gameOn
+	// user started the game, set at 30 seconds
+		gameStart = 30;
+		gameEnd = 30;
+	// start the interval
+		timerInterval = setInterval(updateTimer, 1000);
+	}
+}
+
+	function stopGame() {
+		gamePaused = true;
+		clearInterval(timerInterval);
+
+	}
+
+	function updateTimer() {
+		// Subtract the game end (global variable - tells us when the game should end) from newNow (how much time has currently elapsed)
+			timeDifference = (gameEnd - newNow);
+		if (timeDifference < 0) {
+			//my time elapsed has exceeded my game ending mark, stop the game
+			clearInterval(timerInterval);
+			gameOn = false;
+			timeDifference = 0;
+			document.getElementById('timer').innerHTML = "Game over!";
+		}
+		else {
+			//I still have time to play the game; update how much time has elapsed
+			newNow +=1;
+			document.getElementById('timer').innerHTML = "Time: " + timeDifference + " seconds";
+		}
+}
+
+	var gameStart = 0;
+	var gameEnd = 0;
+	var timerInterval;
+	var score = 0;
+	// When clicked on, get Date.now() and save it to current Date
+	// When clicked on, get Date.now() + 30 * 1000 milliseconds
+	// Create a setInterval to run every X and inside, recalculate the timer
+	// When the difference is < 0, stop the game, clear the timer, check high score if necessary
+
+// 1. add a pause button
+// 2a. Once timer runs out, game is over
+// 3. Keep score, by player
+// 3a. Make a player constructor - name (ask), high score
+// 3b. Make an input for player name
+// 3c. Make a button for a new player.
+
 // Create the canvas tag with JS
-var canvas = document.createElement('canvas'); //canvas element is used to create graphics
+var canvas = document.getElementById('game'); //canvas element is used to create graphics
 // create a context for JS to play with (methods, properties, etc)
 var context = canvas.getContext('2d');
 // Give the canvas some height and width
@@ -18,8 +132,11 @@ canvas.height = 480;
 // add the canvas tag to the DOM
 document.body.appendChild(canvas);
 
+
 var backgroundImage = new Image();  //new Object
 backgroundImage.src="canvas-game-assets/background.png";
+
+var gameOn = false;
 
 //can make a speedModifier to control speed - like var speedModifier = .5 (slower) - mult by the 10 in update()
 
@@ -40,11 +157,12 @@ var monsterLocation = {
 }
 
 var goblinDirectionChangeCounter = 0;
-var goblinDirection = 1;//global var - this is to indicate which directions the goblin can move (at present: moveGoblin();)
+var goblinDirection = 1;//global var - this is a starter to indicate which directions the goblin can move (at present: moveGoblin();)
+
 // An array to hold all the keys that are currently pressed down
 var keysDown = [];
 
-addEventListener('keyup', function(event) { //on this event (keydown let go), delete the index in the array
+addEventListener('keyup', function(event) { //on this event (let go of the key pressed), delete the index in the array
 	delete keysDown[event.keyCode];
 });
 
@@ -77,13 +195,18 @@ addEventListener('keydown', function(event) {
 	// 	console.log("User pressed right arrow");
 	// 	heroLocation.x +=10;
 	// }
-
+	 /*
+	  *
+	  *
+	  *
+	  *
+	  */
 
 });
 
 // This is where we will update the hero based on what's true in keysDown
 function update() {
-	console.log(heroLocation);
+	// console.log(heroLocation);
 
 	// user pressed right at some point because it's in the array.  Move right.
 	// Below is how far up/down/left/right the hero can go
@@ -123,13 +246,20 @@ function update() {
 		monsterLocation.x = random;
 		monsterLocation.y = random2;
 	}
-	// collision detection below
+	// COLLISION DETECTION BELOW
 	if (
-		(heroLocation.x <= monsterLocation.x + 32)
+		(heroLocation.x <= monsterLocation.x + 32) //Math.abs these to condense?
 		&& (heroLocation.y <= monsterLocation.y + 32)
 		&& (monsterLocation.x <= heroLocation.x + 32)
 		&& (monsterLocation.y <= heroLocation.y + 32)
 		) {
+		// makes the monster move to a random location upon collision
+		var newMonsterX = Math.random() * 400 + 40; 
+        var newMonsterY = Math.random() * 400 + 20;
+        monsterLocation.x = newMonsterX;
+        monsterLocation.y = newMonsterY;
+		score++;
+		document.getElementById('keep-score').innerHTML = "Score: " + score;
 		// console.log("Hero is within 32 of the monster.")
 		// Puts goblin in a random spot when within 32 of the hero when collision is detected
 		// var random = Math.random() * canvas.width;
@@ -160,7 +290,7 @@ function goblinBorderDetection() {
 	} 
 }
 
-// Moves the goblin around the page at random
+// Moves the goblin around the page at random - see solution from classmates in notes
 function moveGoblin() {
 	// monster will move orthogonally
 	switch(goblinDirection) {
@@ -195,7 +325,7 @@ function moveGoblin() {
 }
 
 function changeDirection() {
-// every 50 cycles, the goblin changes direction randomly (creates smoother movement)
+// every 50 cycles, the goblin changes direction randomly (creates smoother movement) - add speed modifier?
 	goblinDirectionChangeCounter += 1;
 	if (goblinDirectionChangeCounter == 50) {
 		goblinDirectionChangeCounter = 0;
@@ -205,10 +335,12 @@ function changeDirection() {
 
 // KEEP THIS AT THE BOTTOM - we need something to always keep running - our main game loop
 function draw() {
+	if (gameOn && !gamePaused){
 	update();
+	}
 	// Put our background image on the context, at x = 0, y = 0;
 	context.drawImage(backgroundImage,0,0); //takes 3 parameters - what image do you want to draw, where do you want to draw it (x,y coordinates)
-	context.drawImage(hero,heroLocation.x,heroLocation.y); //puts hero on screen and sets movement parameters
+	context.drawImage(hero,heroLocation.x,heroLocation.y); //draw hero every single frame at x,y (we change these) - JS re-draws him there
 	context.drawImage(monster,monsterLocation.x,monsterLocation.y); //puts monster on screen and sets movement parameters - drawn from top left corner
 	requestAnimationFrame(draw) //pass it the function we want to call (this is a recursive function) - draws an image on the background - every time JS is ready to re-draw, the function (draw) is called again
 
