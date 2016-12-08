@@ -121,17 +121,7 @@ function newPlayer() {
 			document.getElementById('timer').innerHTML = "Time: " + timeDifference + " seconds";
 		}
 }
-	// When clicked on, get Date.now() and save it to current Date
-	// When clicked on, get Date.now() + 30 * 1000 milliseconds
-	// Create a setInterval to run every X and inside, recalculate the timer
-	// When the difference is < 0, stop the game, clear the timer, check high score if necessary
-// 1. add a pause button
-// 2a. Once timer runs out, game is over
-// 3. Keep score, by player
-// 3a. Make a player constructor - name (ask), high score
-// 3b. Make an input for player name
-// 3c. Make a button for a new player.
-// Create the canvas tag with JS
+
 var canvas = document.getElementById('game'); //canvas element is used to create graphics
 // create a context for JS to play with (methods, properties, etc)
 var context = canvas.getContext('2d');
@@ -168,17 +158,10 @@ addEventListener('keyup', function(event) { //on this event (let go of the key p
 // We need a way to tell if the user has pushed an arrow key!
 addEventListener('keydown', function(event) { 
 	// if keyDown[39] is true, then the user pushed the right arrow (storing a boolean in keyDown array @ that index)
-	// if keyDown[40] is true, then the user pushed the down arrow 
-	// if keyDown[37] is true, then the user pushed the left arrow 
-	// if keyDown[38] is true, then the user pushed the up arrow 
 	keysDown[event.keyCode] = true;
 	// console.log(keysDown);
 //function has no name, and will only get called if parent calls it (in this case, 'keydown' - will send a parameter called event here)
-	// we know a key was pressed, or we wouldn't be in here
-	// what key did they press?
-	// console.log(event.key); used this to find the keyboardEvent in the console (used to set event.keys below) - moved to update function further down
-	// if (event.key == 'ArrowDown') {
-	// 	console.log("User pressed down arrow");
+
 	// 	heroLocation.y += 10; //anytime the user presses the arrow down key, update this position by 10px - same for all keys listed in the event.key statements
 	// }
 	// if (event.key == 'ArrowUp') {
@@ -205,7 +188,6 @@ addEventListener('keydown', function(event) {
 // This is where we will update the hero based on what's true in keysDown
 function update() {
 	// console.log(heroLocation);
-	// user pressed right at some point because it's in the array.  Move right.
 	// Below is how far up/down/left/right the hero can go
 	// RIGHT ARROW
 	if (39 in keysDown) {
@@ -237,12 +219,13 @@ function update() {
 	
 	// COLLISION DETECTION BELOW
 	if (
+		// makes the monster move to a random location upon collision
+		// console.log("Hero is within 32 of the monster.")
 		(heroLocation.x <= monsterLocation.x + 32) //Math.abs these to condense?
 		&& (heroLocation.y <= monsterLocation.y + 32)
 		&& (monsterLocation.x <= heroLocation.x + 32)
 		&& (monsterLocation.y <= heroLocation.y + 32)
 		) {
-		// makes the monster move to a random location upon collision
 		score++;
 		document.getElementById('keep-score').innerHTML = "Score: " + score;
 		if (score >= highscore) {
@@ -253,12 +236,8 @@ function update() {
 			playerArray[playerArray.length - 1].highscore = score;
 			document.getElementById('current-player-highscore-value').innerHTML = score;
 		}
-		// console.log("Hero is within 32 of the monster.")
-		// Puts goblin in a random spot when within 32 of the hero when collision is detected
-		// var random = Math.random() * canvas.width;
-		// var random2 = Math.random() * canvas.height;
-		// monsterLocation.x = random;
-		// monsterLocation.y = random2;
+		
+		//makes monster move to a random location
 		var newMonsterX = Math.random() * 400 + 40; 
         var newMonsterY = Math.random() * 400 + 20;
         monsterLocation.x = newMonsterX;
