@@ -14,7 +14,7 @@
 		color:  white;
 	}
 
-	#hi-score {
+	#hi-score, #current-player-highscore  {
 		color:  white;
 	}
 
@@ -43,6 +43,7 @@
 <canvas id="game"></canvas>
 <div id="keep-score">Score:</div>
 <div id="hi-score">High Score: <span id="hi-score-value">0</span></div>
+<div id="current-player-highscore">Current Player High Score: <span id="current-player-highscore-value">0</span></div>
 <div id="timer">Time: 30 seconds</div>
 <div id="game-controls">
 	<button onclick = 'startGame();'>Start Game</button>
@@ -57,7 +58,7 @@ var highscore = 0;
 var gameStart = 0;
 var gameEnd = 0;
 var timerInterval;
-var score = 0;
+var score = 0; //this is the current player's score
 var gamePaused = false;
 var timeDifference;
 var newNow = 0;
@@ -65,7 +66,7 @@ var newNow = 0;
 
 function Player(name) {
 	this.name = name;
-	this.highscore = highscore;
+	this.highscore = 0;
 }
 
 
@@ -247,6 +248,10 @@ function update() {
 		if (score >= highscore) {
 			highscore = score;
 			document.getElementById('hi-score-value').innerHTML = highscore + " (" + playerArray[playerArray.length - 1].name + ")";
+		}
+		if (score >= playerArray[playerArray.length - 1].highscore) {
+			playerArray[playerArray.length - 1].highscore = score;
+			document.getElementById('current-player-highscore-value').innerHTML = score;
 		}
 		// console.log("Hero is within 32 of the monster.")
 		// Puts goblin in a random spot when within 32 of the hero when collision is detected
