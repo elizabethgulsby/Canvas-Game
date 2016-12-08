@@ -4,7 +4,6 @@
 	<title>Canvas Game!</title>
 </head>
 <style type="text/css">
-
 	html {
 		background-color: #000000; 
 	}
@@ -15,37 +14,35 @@
 		color:  white;
 	}
 
+	#hi-score {
+		color:  white;
+	}
+
 	body {
 		text-align: center; 
 	}
-
 	#timer {
 		text-align: center;
 		position: relative;
     	padding-bottom: 15px;
     	color:  white;
 	}
-
 	#game-controls {
 		text-align: center;
 		padding-bottom: 20px;
 	}
-
 	#start-game-message {
 		position: relative;
 		top: 10px;
 		color: white;
 	}
-
-
-
 </style>
 
 
 <body>
 <canvas id="game"></canvas>
-
 <div id="keep-score">Score:</div>
+<div id="hi-score">High Score: <span id="hi-score-value">0</span></div>
 <div id="timer">Time: 30 seconds</div>
 <div id="game-controls">
 	<button onclick = 'startGame();'>Start Game</button>
@@ -54,40 +51,59 @@
 	<input id="player-name" type="text" placeholder="Player Name">
 	<div id="start-game-message">Hello! Please enter your name and click 'New Player' to begin.</div>
 </div>
-
 <script type="text/javascript">
+var playerArray = [];
+var highscore = 0;
+var gameStart = 0;
+var gameEnd = 0;
+var timerInterval;
+var score = 0;
+var gamePaused = false;
+var timeDifference;
+var newNow = 0;
+
+
+function Player(name) {
+	this.name = name;
+	this.highscore = highscore;
+}
+
 
 function newPlayer() {
 	var playerNameDiv = document.getElementById('player-name');
 	var playerName = playerNameDiv.value;
+	var player = new Player(playerName);
+	playerArray.push(player);
+	console.log(playerArray);
 	document.getElementById('start-game-message').innerHTML = "Hello, " + playerName + "!  Try to catch the goblin! Click 'Start Game'."
 }
-var gamePaused = false;
-var timeDifference;
-var newNow = 0;
+
+
+
 // 2. Add a countdown timer
 	// start game button. 
 	function startGame() {
-	if (gamePaused == true) {
-		gamePaused = false;
+		score = 0;
+		newNow = 0;
+		if (gamePaused == true) {
+			gamePaused = false;
+			//timerInterval = setInterval(updateTimer, 1000);
+		}
+		else {
+			gameOn = true;  // when click on Start Game, game starts (timer starts, player can move) - update() set to run if gameOn
+			// user started the game, set at 30 seconds
+			gameStart = 10;
+			gameEnd = 10;
+			// start the interval
+			
+		}
 		timerInterval = setInterval(updateTimer, 1000);
 	}
-	else {
-		gameOn = true;  // when click on Start Game, game starts (timer starts, player can move) - update() set to run if gameOn
-	// user started the game, set at 30 seconds
-		gameStart = 30;
-		gameEnd = 30;
-	// start the interval
-		timerInterval = setInterval(updateTimer, 1000);
-	}
-}
 
 	function stopGame() {
 		gamePaused = true;
 		clearInterval(timerInterval);
-
 	}
-
 	function updateTimer() {
 		// Subtract the game end (global variable - tells us when the game should end) from newNow (how much time has currently elapsed)
 			timeDifference = (gameEnd - newNow);
@@ -104,23 +120,16 @@ var newNow = 0;
 			document.getElementById('timer').innerHTML = "Time: " + timeDifference + " seconds";
 		}
 }
-
-	var gameStart = 0;
-	var gameEnd = 0;
-	var timerInterval;
-	var score = 0;
 	// When clicked on, get Date.now() and save it to current Date
 	// When clicked on, get Date.now() + 30 * 1000 milliseconds
 	// Create a setInterval to run every X and inside, recalculate the timer
 	// When the difference is < 0, stop the game, clear the timer, check high score if necessary
-
 // 1. add a pause button
 // 2a. Once timer runs out, game is over
 // 3. Keep score, by player
 // 3a. Make a player constructor - name (ask), high score
 // 3b. Make an input for player name
 // 3c. Make a button for a new player.
-
 // Create the canvas tag with JS
 var canvas = document.getElementById('game'); //canvas element is used to create graphics
 // create a context for JS to play with (methods, properties, etc)
@@ -128,18 +137,12 @@ var context = canvas.getContext('2d');
 // Give the canvas some height and width
 canvas.width = 512;
 canvas.height = 480;
-
 // add the canvas tag to the DOM
 document.body.appendChild(canvas);
-
-
 var backgroundImage = new Image();  //new Object
 backgroundImage.src="canvas-game-assets/background.png";
-
 var gameOn = false;
-
 //can make a speedModifier to control speed - like var speedModifier = .5 (slower) - mult by the 10 in update()
-
 // make a var for our hero.  He is an image.
 var hero = new Image();
 hero.src = "canvas-game-assets/hero.png";
@@ -147,7 +150,6 @@ var heroLocation = {
 	x: 100,
 	y: 100
 }
-
 // make a var for our bad guy.  He is an image.
 var monster = new Image();
 monster.src = "canvas-game-assets/monster.png";
@@ -155,24 +157,19 @@ var monsterLocation = {
 	x: 200,
 	y: 100
 }
-
 var goblinDirectionChangeCounter = 0;
 var goblinDirection = 1;//global var - this is a starter to indicate which directions the goblin can move (at present: moveGoblin();)
-
 // An array to hold all the keys that are currently pressed down
 var keysDown = [];
-
 addEventListener('keyup', function(event) { //on this event (let go of the key pressed), delete the index in the array
 	delete keysDown[event.keyCode];
 });
-
 // We need a way to tell if the user has pushed an arrow key!
 addEventListener('keydown', function(event) { 
 	// if keyDown[39] is true, then the user pushed the right arrow (storing a boolean in keyDown array @ that index)
 	// if keyDown[40] is true, then the user pushed the down arrow 
 	// if keyDown[37] is true, then the user pushed the left arrow 
 	// if keyDown[38] is true, then the user pushed the up arrow 
-
 	keysDown[event.keyCode] = true;
 	// console.log(keysDown);
 //function has no name, and will only get called if parent calls it (in this case, 'keydown' - will send a parameter called event here)
@@ -207,7 +204,6 @@ addEventListener('keydown', function(event) {
 // This is where we will update the hero based on what's true in keysDown
 function update() {
 	// console.log(heroLocation);
-
 	// user pressed right at some point because it's in the array.  Move right.
 	// Below is how far up/down/left/right the hero can go
 	// RIGHT ARROW
@@ -237,15 +233,7 @@ function update() {
 		heroLocation.y += 10;
 		}
 	}
-
-	// SPACEBAR
-	//want to use this to eventually execute goblin - rotate image on-press so that he remains frozen? Create button to toggle the goblin movement so that the cycle of chasing and pressing spacebar to kill can be executed again
-	if (32 in keysDown && goblinDirection === 0) {
-		var random = Math.random() * (canvas.width - 64);
-		var random2 = Math.random() * (canvas.height - 64);
-		monsterLocation.x = random;
-		monsterLocation.y = random2;
-	}
+	
 	// COLLISION DETECTION BELOW
 	if (
 		(heroLocation.x <= monsterLocation.x + 32) //Math.abs these to condense?
@@ -254,20 +242,22 @@ function update() {
 		&& (monsterLocation.y <= heroLocation.y + 32)
 		) {
 		// makes the monster move to a random location upon collision
-		var newMonsterX = Math.random() * 400 + 40; 
-        var newMonsterY = Math.random() * 400 + 20;
-        monsterLocation.x = newMonsterX;
-        monsterLocation.y = newMonsterY;
 		score++;
 		document.getElementById('keep-score').innerHTML = "Score: " + score;
+		if (score >= highscore) {
+			highscore = score;
+			document.getElementById('hi-score-value').innerHTML = highscore + " (" + playerArray[playerArray.length - 1].name + ")";
+		}
 		// console.log("Hero is within 32 of the monster.")
 		// Puts goblin in a random spot when within 32 of the hero when collision is detected
 		// var random = Math.random() * canvas.width;
 		// var random2 = Math.random() * canvas.height;
 		// monsterLocation.x = random;
 		// monsterLocation.y = random2;
-		goblinDirection = 0; //commented out var random/random2 above to prevent goblin from teleporting when reaching hero; want to stun goblin for 50 cycles to allow hero to attack
-		// goblinBorderDetection();
+		var newMonsterX = Math.random() * 400 + 40; 
+        var newMonsterY = Math.random() * 400 + 20;
+        monsterLocation.x = newMonsterX;
+        monsterLocation.y = newMonsterY;
 	}
 	moveGoblin();
 	changeDirection();
