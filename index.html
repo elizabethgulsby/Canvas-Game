@@ -46,22 +46,24 @@
 <div id="current-player-highscore">Current Player High Score: <span id="current-player-highscore-value">0</span></div>
 <div id="timer">Time: 30 seconds</div>
 <div id="game-controls">
-	<button onclick = 'startGame();'>Start Game</button>
-	<button onclick = 'stopGame();''>Stop Game</button>
-	<button onclick = 'newPlayer();'>New Player</button>
+	<button onclick = 'startGame();'>New Game</button>
+	<button id="pause" onclick = 'pauseGame();'>Pause Game</button>  
+	<button onclick = 'newPlayer();'>New Player</button>  
+
+	<!-- add reset button? -->
 	<input id="player-name" type="text" placeholder="Player Name">
-	<div id="start-game-message">Hello! Please enter your name and click 'New Player' to begin.</div>
+	<div id="start-game-message">
+		Hello! Please enter your name and click 'New Player' to begin.
+	</div>
 </div>
 <script type="text/javascript">
 var playerArray = [];
 var highscore = 0;
-var gameStart = 0;
-var gameEnd = 0;
-var timerInterval;
+var countdownTimer;
 var score = 0; //this is the current player's score
 var gamePaused = false;
-var timeDifference;
-var newNow = 0;
+var gameOn = false;
+var timeRemaining = 0;
 
 
 function Player(name) {
@@ -73,10 +75,14 @@ function Player(name) {
 function newPlayer() {
 	var playerNameDiv = document.getElementById('player-name');
 	var playerName = playerNameDiv.value;
+	if (playerName.length <= 0) {
+		playerName = "Stranger";
+	}
 	var player = new Player(playerName);
 	playerArray.push(player);
 	console.log(playerArray);
-	document.getElementById('start-game-message').innerHTML = "Hello, " + playerName + "!  Try to catch the goblin! Click 'Start Game'."
+	document.getElementById('start-game-message').innerHTML = "Hello, " + playerName + "!  Try to catch the goblin! Click 'New Game'.";
+	document.getElementById('start-game-message').style.visibility = "visible";
 }
 
 
@@ -85,42 +91,40 @@ function newPlayer() {
 	// start game button. 
 	function startGame() {
 		score = 0;
-		newNow = 0;
-		if (gamePaused == true) {
+		timeRemaining = 5;
+		if (gamePaused == true) { 
 			gamePaused = false;
-			//timerInterval = setInterval(updateTimer, 1000);
 		}
-		else {
-			gameOn = true;  // when click on Start Game, game starts (timer starts, player can move) - update() set to run if gameOn
-			// user started the game, set at 30 seconds
-			gameStart = 10;
-			gameEnd = 10;
-			// start the interval
-			
-		}
-		timerInterval = setInterval(updateTimer, 1000);
+		gameOn = true; //update() runs if this is set to true, at present
+		countdownTimer = setInterval(updateTimer, 1000); //created timer here; countdownTimer calls updateTimer
+		document.getElementById('start-game-message').style.visibility = "hidden";
 	}
 
-	function stopGame() {
-		gamePaused = true;
-		clearInterval(timerInterval);
+	function pauseGame() {
+		if (gamePaused == true) {
+			gamePaused = false;
+			document.getElementById('pause').innerHTML = "Pause Game";
+			countdownTimer = setInterval(updateTimer, 1000); 
+		}
+		else {
+			gamePaused = true;
+			document.getElementById('pause').innerHTML = "Unpause Game";
+			clearInterval(countdownTimer); //this pauses the timer
+		}
 	}
+
+
 	function updateTimer() {
-		// Subtract the game end (global variable - tells us when the game should end) from newNow (how much time has currently elapsed)
-			timeDifference = (gameEnd - newNow);
-		if (timeDifference < 0) {
-			//my time elapsed has exceeded my game ending mark, stop the game
-			clearInterval(timerInterval);
+		if (timeRemaining <= 0) {
+			clearInterval(countdownTimer); //stops the timer
 			gameOn = false;
-			timeDifference = 0;
 			document.getElementById('timer').innerHTML = "Game over!";
 		}
 		else {
-			//I still have time to play the game; update how much time has elapsed
-			newNow +=1;
-			document.getElementById('timer').innerHTML = "Time: " + timeDifference + " seconds";
+			timeRemaining -= 1;
+			document.getElementById('timer').innerHTML = "Time: " + timeRemaining + " seconds";
 		}
-}
+	}
 
 var canvas = document.getElementById('game'); //canvas element is used to create graphics
 // create a context for JS to play with (methods, properties, etc)
@@ -132,7 +136,6 @@ canvas.height = 480;
 document.body.appendChild(canvas);
 var backgroundImage = new Image();  //new Object
 backgroundImage.src="canvas-game-assets/background.png";
-var gameOn = false;
 //can make a speedModifier to control speed - like var speedModifier = .5 (slower) - mult by the 10 in update()
 // make a var for our hero.  He is an image.
 var hero = new Image();
@@ -236,7 +239,7 @@ function update() {
 			playerArray[playerArray.length - 1].highscore = score;
 			document.getElementById('current-player-highscore-value').innerHTML = score;
 		}
-		
+
 		//makes monster move to a random location
 		var newMonsterX = Math.random() * 400 + 40; 
         var newMonsterY = Math.random() * 400 + 20;

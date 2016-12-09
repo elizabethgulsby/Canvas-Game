@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Canvas Game, Redux!</title>
+</head>
+<style type="text/css">
+
+body {
+	text-align: center;
+}
+	
+
+
+</style>
+
+
+<body>
+<canvas id="game"></canvas> <!-- adding this tag will make it easier to style the canvas later on in the code by supplying an id for canvas-->
+<div id="score">Score: </div>
+<div id="hi-score">High Score: </div>
+<div id="current-player-highscore">Current Player High Score: </div>
+<div id="timer">Time: 30 seconds</div>
+<div id="game-controls">
+	<button onclick = 'startGame();'>New Game</button>
+	<button id="pause" onclick = 'pauseGame();'>Pause Game</button>  
+	<button onclick = 'newPlayer();'>New Player</button>  
+	<input id="player-name" type="text" placeholder="Player Name">
+	<div id="start-game-message">
+		Hello! Please enter your name and click 'New Player' to begin.
+	</div>
+</div>
+</div>
+
+
+<script type="text/javascript">
+	//global variables
+	var playerArray = []; //will hold all players, present and current 
+	var highscore = 0; //set to 0 at init; represents overall high score
+	var countdownTimer; //this will count down from 30 whenever buttons are pressed
+	var score = 0; //this is the current player's score
+	var gamePaused = false;
+	var gameOn = false; 
+	var timeRemaining = 0;
+	var keysDown = []; //will hold keys pressed to create movement
+
+
+	//giving JS a canvas to work with (to create graphics, implement methods)
+	var canvas = document.getElementById('game'); //adds canvas tag to DOM
+	var context = canvas.getContext('2d');
+	document.body.appendChild(canvas);
+
+	//defining the canvas parameters
+	canvas.width = 512;
+	canvas.height = 480;
+
+	//adding the background to the canvas.  It is an instance of the Image object (class).
+	var backgroundImage = new Image();
+
+	//adding the first hero + his dimensions + coordinates to the canvas - he is an instance of the Image object as well. His location is an object.
+	var hero = new Image();
+	hero.src = "canvas-game-assets/hero.png";
+	var heroLocation = {
+		x: 100,
+		y: 100
+	}
+
+	//adding the first bad guy + dimensions + coordinates to the canvas - also an instance of the Image object.  His location is also an object.
+	var monster = new Image();
+	monster.src = "canvas-game-assets/monster.png"
+	var monsterLocation = {
+		x: 200,
+		y: 100
+	}
+
+	// start game button. 
+	function startGame() {
+		score = 0;
+		timeRemaining = 5;
+		if (gamePaused == true) { 
+			gamePaused = false;
+		}
+		gameOn = true; 
+		countdownTimer = setInterval(updateTimer, 1000); //created timer here; countdownTimer calls updateTimer
+		document.getElementById('start-game-message').style.visibility = "hidden";
+	}
+
+	//pause game button
+	function pauseGame() {
+		if (gamePaused == true) {
+			gamePaused = false;
+			document.getElementById('pause').innerHTML = "Pause Game";
+			countdownTimer = setInterval(updateTimer, 1000); 
+		}
+		else {
+			gamePaused = true;
+			document.getElementById('pause').innerHTML = "Unpause Game";
+			clearInterval(countdownTimer); //this pauses the timer
+		}
+	}
+
+	//initialized inside startGame();
+	function updateTimer() {
+		if (timeRemaining <= 0) {
+			clearInterval(countdownTimer); //stops the timer
+			gameOn = false;
+			document.getElementById('timer').innerHTML = "Game over!";
+		}
+		else {
+			timeRemaining -= 1;
+			document.getElementById('timer').innerHTML = "Time: " + timeRemaining + " seconds";
+		}
+	}
+
+
+
+	//our main game loop (stays at the bottom)
+	function draw() {
+		//puts the background image at 0,0 on the canvas.  Takes the element (image) to be drawn and the coordinates at which to draw it on the canvas as arguments (3).
+		context.drawImage(backgroundImage, 0,0) //draws the background image at 0,0
+		context.drawImage(hero, heroLocation.x, heroLocation.y) //draws the hero on the canvas at wherever he happens to be; his initial location is set to 100,100 upon every re-draw of the canvas unless he is moved
+		context.drawImage(monster,monsterLocation.x,monsterLocation.y); //draws the monster on the canvas at wherever he happens to be; initial location is set to 200,100 upon each re-draw unless he is moved
+		requestAnimationFrame(draw); //telling the browser here that we want an animation to occur on the page; setting this function to call itself so that it constantly re-draws itself
+	}
+	draw(); //calling draw() so that it continues to run
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>
