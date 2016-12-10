@@ -38,9 +38,9 @@ body {
 	var highscore = 0; //set to 0 at init; represents overall high score
 	var countdownTimer; //this will count down from 30 whenever buttons are pressed
 	var score = 0; //this is the current player's score
-	var gamePaused = false;
-	var gameOn = false; 
-	var timeRemaining = 0;
+	var gamePaused = false; //game starts in this mode
+	var gameOn = false; //game starts in this mode
+	var timeRemaining = 0;//
 	var keysDown = []; //will hold keys pressed to create movement
 
 
@@ -75,12 +75,12 @@ body {
 	// start game button. 
 	function startGame() {
 		score = 0;
-		timeRemaining = 5;
+		timeRemaining = 5; //set to 5 for testing purposes; will be reset to 30
 		if (gamePaused == true) { 
 			gamePaused = false;
 		}
 		gameOn = true; 
-		countdownTimer = setInterval(updateTimer, 1000); //created timer here; countdownTimer calls updateTimer
+		countdownTimer = setInterval(updateTimer, 1000); //created timer here; countdownTimer calls updateTimer, runs each second
 		document.getElementById('start-game-message').style.visibility = "hidden";
 	}
 
@@ -110,6 +110,86 @@ body {
 			document.getElementById('timer').innerHTML = "Time: " + timeRemaining + " seconds";
 		}
 	}
+
+	//created Player object
+	function Player(name) {
+	this.name = name;
+	this.highscore = 0;
+	}
+
+
+	function newPlayer() {
+		var playerNameDiv = document.getElementById('player-name');
+		var playerName = playerNameDiv.value;
+		if (playerName.length <= 0) { //will return a value even if nothing is entered into text box
+			playerName = "Stranger";
+		}
+		var player = new Player(playerName); //creates a new instance of Player object
+		playerArray.push(player);
+		console.log(playerArray);
+		document.getElementById('start-game-message').innerHTML = "Hello, " + playerName + "!  Try to catch the goblin! Click 'New Game'.";
+		document.getElementById('start-game-message').style.visibility = "visible";
+	}
+
+	//game objects + methods - can nix the static location with this object (the x:100, y:100 in index.html)
+	//what do all heroes have?  Include here
+	function Hero(x, y, heroAvatar) {
+		this.x = x;
+		this.y = y;
+		this.hero = new Image(); //declares an image instance for the hero
+		this.hero.src = heroAvatar; //assigns the src for the image instance to heroAvatar; include folder path
+	}
+
+	//hero movement parameters go here - any hero created with Hero constructor will share this method
+	Hero.prototype.heroMovement = function() {
+		if (39 in keysDown) {
+			if (this.x <= 440) {
+			this.x += 10;
+			}
+		}
+	
+	// LEFT ARROW
+		if (37 in keysDown) {
+			if (this.x >= 40) {
+			this.x -= 10;
+			}
+		}
+
+	// UP ARROW
+		if (38 in keysDown) {
+			if (this.y >= 40) {
+			this.y -= 10;
+			}
+		}
+
+	// DOWN ARROW
+		if (40 in keysDown) {
+			if (this.y <= 400) {
+			this.y += 10;
+			}
+		}
+	}
+
+	function Monster(x, y, monsterAvatar) {
+		this.x = x;
+		this.y = y;
+		this.monster = new Image(); 
+		this.monster.src = monsterAvatar; 
+	}
+
+
+
+
+	// An array to hold all the keys that are currently pressed down
+	var keysDown = [];
+
+	//event listeners that tell whether a key was pressed; takes the action + a function that happens upon that action - in this case, the key pressed will be added to the keysDown array when pressed
+	addEventListener('keydown', function(event) { 
+		keysDown[event.keyCode] = true;
+	});
+	addEventListener('keyup', function(event) { //on this event (let go of the key pressed), delete the index in the keysDown array
+	delete keysDown[event.keyCode];
+	});
 
 
 

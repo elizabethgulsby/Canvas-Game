@@ -267,7 +267,16 @@ function goblinBorderDetection() {
 	} 
 }
 
-// Moves the goblin around the page at random - see solution from classmates in notes
+function changeDirection() {
+// every 50 cycles, the goblin changes direction randomly (creates smoother movement) - add speed modifier?
+	goblinDirectionChangeCounter += 1;
+	if (goblinDirectionChangeCounter == 50) {
+		goblinDirectionChangeCounter = 0;
+		goblinDirection = Math.floor(Math.random() * 8) + 1;
+	}
+}
+
+// Moves the goblin around the page in one of 8 directions
 function moveGoblin() {
 	// monster will move orthogonally
 	switch(goblinDirection) {
@@ -301,14 +310,6 @@ function moveGoblin() {
 	}
 }
 
-function changeDirection() {
-// every 50 cycles, the goblin changes direction randomly (creates smoother movement) - add speed modifier?
-	goblinDirectionChangeCounter += 1;
-	if (goblinDirectionChangeCounter == 50) {
-		goblinDirectionChangeCounter = 0;
-		goblinDirection = Math.floor(Math.random() * 8) + 1;
-	}
-}
 
 // KEEP THIS AT THE BOTTOM - we need something to always keep running - our main game loop
 function draw() {
