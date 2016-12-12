@@ -42,6 +42,11 @@ body {
 	var gameOn = false; //game starts in this mode
 	var timeRemaining = 0;//
 	var keysDown = []; //will hold keys pressed to create movement
+	var monsters = []; //will hold all monsters added to game
+	var monsterDirection = 1; //indicates where monster starts (1 of 8 directions)
+	var monsterDirectionTracking = 0; //initialized to 0; max: 50 pixels (before changing direction)
+	var currentPlayer; //logs current player information
+
 
 
 	//giving JS a canvas to work with (to create graphics, implement methods)
@@ -55,22 +60,7 @@ body {
 
 	//adding the background to the canvas.  It is an instance of the Image object (class).
 	var backgroundImage = new Image();
-
-	//adding the first hero + his dimensions + coordinates to the canvas - he is an instance of the Image object as well. His location is an object.
-	var hero = new Image();
-	hero.src = "canvas-game-assets/hero.png";
-	var heroLocation = {
-		x: 100,
-		y: 100
-	}
-
-	//adding the first bad guy + dimensions + coordinates to the canvas - also an instance of the Image object.  His location is also an object.
-	var monster = new Image();
-	monster.src = "canvas-game-assets/monster.png"
-	var monsterLocation = {
-		x: 200,
-		y: 100
-	}
+	backgroundImage.src = "canvas-game-assets/background.png";
 
 	// start game button. 
 	function startGame() {
@@ -113,35 +103,36 @@ body {
 
 	//created Player object
 	function Player(name) {
-	this.name = name;
-	this.highscore = 0;
+		this.name = name;
+		this.score = 0;
+		this.highscore = 0;
 	}
 
 
 	function newPlayer() {
 		var playerNameDiv = document.getElementById('player-name');
 		var playerName = playerNameDiv.value;
+		var player = new Player(playerName); //creates a new instance of Player object
 		if (playerName.length <= 0) { //will return a value even if nothing is entered into text box
 			playerName = "Stranger";
 		}
-		var player = new Player(playerName); //creates a new instance of Player object
 		playerArray.push(player);
-		console.log(playerArray);
+		currentPlayer = playerArray[playerArray.length - 1] //pushes currentPlayer into the last place of playerArray
 		document.getElementById('start-game-message').innerHTML = "Hello, " + playerName + "!  Try to catch the goblin! Click 'New Game'.";
 		document.getElementById('start-game-message').style.visibility = "visible";
+
 	}
 
-	//game objects + methods - can nix the static location with this object (the x:100, y:100 in index.html)
 	//what do all heroes have?  Include here
 	function Hero(x, y, heroAvatar) {
-		this.x = x;
+		this.x = x,
 		this.y = y;
-		this.hero = new Image(); //declares an image instance for the hero
-		this.hero.src = heroAvatar; //assigns the src for the image instance to heroAvatar; include folder path
+		this.image = new Image(); //declares an image instance for the hero
+		this.image.src = heroAvatar;//assigns the src for the image instance to heroAvatar; include folder path
 	}
 
 	//hero movement parameters go here - any hero created with Hero constructor will share this method
-	Hero.prototype.heroMovement = function() {
+	Hero.prototype.heroMovement = function(keysDown) {
 		if (39 in keysDown) {
 			if (this.x <= 440) {
 			this.x += 10;
@@ -170,18 +161,113 @@ body {
 		}
 	}
 
+	//adding the first hero + his dimensions + coordinates to the canvas
+	var hero = new Hero(100,100,"canvas-game-assets/hero.png");
+
+	//what do all monsters have in common? put here
 	function Monster(x, y, monsterAvatar) {
 		this.x = x;
 		this.y = y;
-		this.monster = new Image(); 
-		this.monster.src = monsterAvatar; 
+		this.image = new Image(); 
+		this.image.src = monsterAvatar;
 	}
 
+	Monster.prototype.borderDetection = function() {
+		if (this.x < 32) {
+			this.x = 32;
+		}
+		if (this.y < 32) {
+			this.y = 32;
+		}
+		if (this.x > (canvas.width - 64)) {
+			(this.x = (canvas.width - 64));
+		}
+		if (this.y > (canvas.height - 64)) {
+			(this.y = (canvas.height - 64));
+		} 
+	}
+
+	Monster.prototype.moveMonster = function() {
+		//moves 1 of 8 directions
+		switch(monsterDirection) {
+		case 1: //move goblin up
+			this.y -= 1;
+			break;
+		case 2: //move goblin up and to the right
+			this.y -= 1;
+			this.x += 1;
+			break;
+		case 3: //move goblin to the right
+			this.x += 1;
+			break;
+		case 4: //move goblin down and to the right
+			this.y += 1;
+			this.x += 1;
+			break;
+		case 5: //move goblin down
+			this.y +=1;
+			break;
+		case 6: //move goblin down and to the left
+			this.y += 1;
+			this.x -= 1;
+			break;
+		case 7: //move goblin left
+			this.x -= 1;
+			break;
+		case 8: //move goblin up and to the left
+			this.y -= 1;
+			this.x -= 1;
+		}
+
+		//starts the monster at 0 then adds 1px to his movement; if he reaches 50px, then his counter is reset and he changes direction; he can do this for 1 of 8 directions
+		monsterDirectionTracking += 1;
+		if (monsterDirectionTracking == 50) {
+			monsterDirectionTracking = 0;
+			monsterDirection = Math.floor(Math.random() * 8) + 1;
+		}
+	}
+
+	Monster.prototype.randomizeMovement = function() {
+		//makes monster move to a random location
+		var newMonsterX = Math.random() * 400 + 40; 
+        var newMonsterY = Math.random() * 400 + 20;
+        this.x = newMonsterX;
+        this.y = newMonsterY;
+	}
+
+	//adding the first bad guy + dimensions + coordinates to the canvas; pushing him onto the monsters array
+	var monster = new Monster(200, 100, "canvas-game-assets/monster.png");
+	monsters.push(new Monster(200,100, "canvas-game-assets/monster.png"));
 
 
+	function updateCollisionDetection(hero, monster) {
+		//checks to see if hero and monster collided; will move monster if collision occurs
+		var collisionOccurred = false;
+		if (
+			(hero.x <= monster.x + 32) //Math.abs these to condense?
+			&& (hero.y <= monster.y + 32)
+			&& (monster.x <= hero.x + 32)
+			&& (monster.y <= hero.y + 32)
+			) {
+				currentPlayer.score++;
+				monster.randomizeMovement();
+				collisionOccurred = true;
+			}
+		return collisionOccurred;
+	}
 
-	// An array to hold all the keys that are currently pressed down
-	var keysDown = [];
+	function updatePlayerScores() {
+		document.getElementById('score').innerHTML = "Score: " + currentPlayer.score;
+		if (currentPlayer.score >= highscore) {
+			highscore = currentPlayer.score;
+			document.getElementById('hi-score').innerHTML = "High Score: " + highscore + " (" + currentPlayer.name + ")";
+		}
+		if (currentPlayer.score >= currentPlayer.highscore) {
+			currentPlayer.highscore = currentPlayer.score;
+			document.getElementById('current-player-highscore').innerHTML = "Current Player High Score: " + currentPlayer.score;
+		}
+
+	}
 
 	//event listeners that tell whether a key was pressed; takes the action + a function that happens upon that action - in this case, the key pressed will be added to the keysDown array when pressed
 	addEventListener('keydown', function(event) { 
@@ -195,10 +281,17 @@ body {
 
 	//our main game loop (stays at the bottom)
 	function draw() {
+		if (gameOn && !gamePaused) {
+			hero.heroMovement(keysDown);
+			var collisionDetection = updateCollisionDetection(hero, monster);
+			if (collisionDetection == true) {
+				updatePlayerScores();
+			}
+		}
 		//puts the background image at 0,0 on the canvas.  Takes the element (image) to be drawn and the coordinates at which to draw it on the canvas as arguments (3).
-		context.drawImage(backgroundImage, 0,0) //draws the background image at 0,0
-		context.drawImage(hero, heroLocation.x, heroLocation.y) //draws the hero on the canvas at wherever he happens to be; his initial location is set to 100,100 upon every re-draw of the canvas unless he is moved
-		context.drawImage(monster,monsterLocation.x,monsterLocation.y); //draws the monster on the canvas at wherever he happens to be; initial location is set to 200,100 upon each re-draw unless he is moved
+		context.drawImage(backgroundImage, 0,0); //draws the background image at 0,0
+		context.drawImage(hero.image, hero.x, hero.y); //draws the hero on the canvas at wherever he happens to be; his initial location is set to 100,100 upon every re-draw of the canvas unless he is moved
+		context.drawImage(monster.image,monster.x,monster.y); //draws the monster on the canvas at wherever he happens to be; initial location is set to 200,100 upon each re-draw unless he is moved
 		requestAnimationFrame(draw); //telling the browser here that we want an animation to occur on the page; setting this function to call itself so that it constantly re-draws itself
 	}
 	draw(); //calling draw() so that it continues to run
